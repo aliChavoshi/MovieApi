@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MoviesApi</name>
+    </assembly>
+    <members>
+        <member name="M:MoviesApi.Controllers.AccountsController.CreateUser(MoviesApi.DTOs.UserInfo)">
+            <summary>
+            Create User
+            </summary>
+            <param name="model">Model For Create User</param>
+            <returns></returns>
+        </member>
+        <member name="M:MoviesApi.Controllers.MoviesController.GetMovie(System.Int32)">
+            <summary>
+            Get Movie By Id
+            </summary>
+            <param name="id">Movie Id</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
