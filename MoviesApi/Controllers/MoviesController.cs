@@ -18,7 +18,7 @@ namespace MoviesApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MoviesController : ControllerBase
+    public class MoviesController : CustomBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
@@ -26,7 +26,8 @@ namespace MoviesApi.Controllers
         private const string ContainerName = "Movies";
         private readonly ILogger<Movie> _logger;
 
-        public MoviesController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService, ILogger<Movie> logger)
+        public MoviesController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService, ILogger<Movie> logger) :
+            base(mapper, context)
         {
             _context = context;
             _mapper = mapper;
@@ -74,21 +75,24 @@ namespace MoviesApi.Controllers
         /// <returns></returns>
         // GET: api/Movies/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetMovie(int id)
+        public async Task<ActionResult<MovieDetailsDto>> GetMovie(int id)
         {
-            var movie = await _context.Movies
+            var queryable = _context.Movies
                 .Include(x => x.MoviesActors).ThenInclude(x => x.Person)
                 .Include(x => x.MoviesGenres).ThenInclude(x => x.Genre)
-                .SingleOrDefaultAsync(x => x.Id == id);
+                .AsQueryable();
 
-            if (movie == null)
+
+            return await Get<Movie, MovieDetailsDto>(id, queryable);
+
+            /*if (queryable == null)
             {
                 return NotFound();
             }
 
-            var movieDto = _mapper.Map<MovieDetailsDto>(movie);
+            var movieDto = _mapper.Map<MovieDetailsDto>(queryable);
 
-            return Ok(movieDto);
+            return Ok(movieDto);*/
         }
 
 
@@ -233,46 +237,16 @@ namespace MoviesApi.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult> PatchMovie(int id, [FromBody] JsonPatchDocument<MoviePatchDtos> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            //Get Data From DB
-            Movie entityFromDb = await _context.Movies.FindAsync(id);
-            if (entityFromDb == null)
-            {
-                return NotFound();
-            }
-
-            //ابتدا مدل دیتا بیس را با مدل پچ مپ میکنم و مقادیر دیتا بیس را داخل یک کتغیر میریزم
-            //به این دلیل این کار را کردم که بتوانم مدل دیتابیس را به مدل ورودی نزدیک کنم
-            var entityDto = _mapper.Map<MoviePatchDtos>(source: entityFromDb);
-
-            //حالا مدل ورودی را به مدل دیتا بیس باید اپلای کنم
-            patchDocument.ApplyTo(entityDto, modelState: ModelState);
-            //الان همه چیز داخل entityDTO  میباشد 
-            //شاید کاربر مقادیر نال ارسال کرده باشه 
-            var isValid = TryValidateModel(entityDto);
-            if (!isValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            //حالا باید مدلی که ویرایش کردیم را به مدل دیتابیس ارسال کنیم تا آپدیت بشه
-            _mapper.Map(source: entityDto, destination: entityFromDb);
-
-            //Save
-            _context.Update(entityFromDb);
-            await _context.SaveChangesAsync();
-            return Ok(entityFromDb);
+            return await Patch<Movie, MoviePatchDtos>(id, patchDocument);
         }
 
         // DELETE: api/Movies/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
+            return await Delete<Movie, MoviesGenres>(id);
+
+            /*var movie = await _context.Movies.FindAsync(id);
             if (movie == null)
             {
                 return NotFound();
@@ -285,7 +259,7 @@ namespace MoviesApi.Controllers
             _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
 
-            return Ok(movie);
+            return Ok(movie);*/
         }
 
 

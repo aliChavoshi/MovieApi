@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MoviesApi.Services;
 
 namespace MoviesApi.DTOs
 {

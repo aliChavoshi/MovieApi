@@ -18,12 +18,12 @@ namespace MoviesApi.Controllers
     [Route("api/[Controller]")]
     [ApiController]
     /*[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]*/
-    public class GenresController : ControllerBase
+    public class GenresController : CustomBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
 
-        public GenresController(ApplicationDbContext context, IMapper mapper)
+        public GenresController(ApplicationDbContext context, IMapper mapper) : base(mapper, context)
         {
             _context = context;
             _mapper = mapper;
@@ -35,25 +35,29 @@ namespace MoviesApi.Controllers
         [EnableCors(PolicyName = "AllowRequestIO")]
         [ServiceFilter(typeof(GenreHateoasAttribute))]
         /*[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = "admin")]*/
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<List<GenreDtOs>>> Get()
         {
-            //Get Data From DB
+            return await Get<Genre, GenreDtOs>();
+
+            /*//Get Data From DB
             var genres = await _context.Genres.ToListAsync();
             //میخواهم لیست بالا را به داخل لیست خودم تبدلی کنم
             //< > مدل من
             //( ) مدلی که دریافت کرده ام
             var genresDtos = _mapper.Map<List<GenreDtOs>>(genres);
 
-            return Ok(genresDtos);
+            return Ok(genresDtos);*/
         }
 
 
 
         [HttpGet("{id}", Name = "GetGenre")] //api/Genres/id
         [ServiceFilter(typeof(GenreHateoasAttribute))]
-        public async Task<IActionResult> Get(int id)
+        public async Task<ActionResult<GenreDtOs>> Get(int id)
         {
-            var model = await _context.Genres.FindAsync(id);
+            return await Get<Genre, GenreDtOs>(id);
+
+            /*var model = await _context.Genres.FindAsync(id);
             if (model == null)
             {
                 //return 404
@@ -63,15 +67,17 @@ namespace MoviesApi.Controllers
             var genreDto = _mapper.Map<GenreDtOs>(model);
 
 
-            return Ok(genreDto);
+            return Ok(genreDto);*/
         }
 
 
 
         [HttpPost(Name = "CreateGenre")]
-        public async Task<IActionResult> Post([FromBody] GenreCreationDto genreCreation)
+        public async Task<ActionResult> Post([FromBody] GenreCreationDto genreCreation)
         {
-            //مدلی که سمت کاربر برای من ارسال میشود نباید آیدی داشته باشد
+            return await Post<Genre, GenreCreationDto, GenreDtOs>(genreCreation, "GetGenre");
+
+            /*//مدلی که سمت کاربر برای من ارسال میشود نباید آیدی داشته باشد
             //لذا یک مدل ساختم که بدون آیدی باشد 
             //لذا جدا این بخش را مپ کردم
             //حالا باید مدل کاربر را به سمت مدل دیتابیس مپ کنم
@@ -84,7 +90,7 @@ namespace MoviesApi.Controllers
 
             //back to action
             //api/Genre/id
-            return new CreatedAtActionResult("Get", "Genres", new { id = genreDto.Id }, genreDto);
+            return new CreatedAtActionResult("Get", "Genres", new { id = genreDto.Id }, genreDto);*/
         }
 
 
@@ -92,12 +98,14 @@ namespace MoviesApi.Controllers
         [HttpPut("{id}", Name = "PutGenere")]
         public async Task<IActionResult> Put([FromRoute] int id, [FromBody] GenreCreationDto genreDto)
         {
-            var genre = _mapper.Map<Genre>(genreDto);
+            return await Put<Genre, GenreCreationDto>(id, genreDto);
+
+            /*var genre = _mapper.Map<Genre>(genreDto);
             genre.Id = id;
             _context.Entry(genre).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             //retuen 204
-            return Ok(genre);
+            return Ok(genre);*/
         }
 
 
@@ -106,7 +114,9 @@ namespace MoviesApi.Controllers
         [HttpDelete("{id}", Name = "DeleteGenre")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var model = await _context.Genres.FindAsync(id);
+            return await Delete<Genre, GenreDtOs>(id);
+
+            /*var model = await _context.Genres.FindAsync(id);
             if (model == null)
             {
                 //return 404
@@ -116,7 +126,7 @@ namespace MoviesApi.Controllers
             _context.Entry(model).State = EntityState.Deleted;
             await _context.SaveChangesAsync();
             var genreDto = _mapper.Map<GenreDtOs>(model);
-            return Ok(genreDto);
+            return Ok(genreDto);*/
         }
 
 

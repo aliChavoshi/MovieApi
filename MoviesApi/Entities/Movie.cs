@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using MoviesApi.Services;
 
 namespace MoviesApi.Entities
 {
-    public class Movie : BaseEntity
+    public class Movie : BaseEntity,IId
     {
         [Display(Name = "عنوان")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]

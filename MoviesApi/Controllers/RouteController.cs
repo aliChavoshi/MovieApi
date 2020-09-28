@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MoviesApi.DTOs;
+using MoviesApi.Helpers;
 
 namespace MoviesApi.Controllers
 {
     [Route("api")]
     [ApiController]
+    [HttpHeaderIsPresent("X-Version", "1")]
     public class RouteController : ControllerBase
     {
         [HttpGet(Name = "GetRoot")]

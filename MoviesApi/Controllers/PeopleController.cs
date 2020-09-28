@@ -17,14 +17,14 @@ namespace MoviesApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PeopleController : ControllerBase
+    public class PeopleController : CustomBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IFileStorageService _fileStorageService;
         private const string ContainerName = "people";
 
-        public PeopleController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService)
+        public PeopleController(ApplicationDbContext context, IMapper mapper, IFileStorageService fileStorageService) : base(mapper, context)
         {
             _context = context;
             _mapper = mapper;
@@ -33,9 +33,11 @@ namespace MoviesApi.Controllers
 
         // GET: api/People
         [HttpGet(Name = "GetPeople")]
-        public async Task<IActionResult> GetPerson([FromQuery] PaginationDto pagination)
+        public async Task<ActionResult<List<PersonDtos>>> GetPerson([FromQuery] PaginationDto pagination)
         {
-            //ابتدا لیست کلی را در یافت میکینیم ولی به لیست تبدیلش نمیکنیم 
+            return await Get<Person, PersonDtos>(pagination);
+
+            /*//ابتدا لیست کلی را در یافت میکینیم ولی به لیست تبدیلش نمیکنیم 
             IQueryable<Person> queryble = _context.Person;
 
             //Insert Count Page To Header
@@ -47,16 +49,18 @@ namespace MoviesApi.Controllers
             //Create New Map List<PersonDtos>
             var personDtOs = _mapper.Map<List<PersonDtos>>(persons);
 
-            return Ok(personDtOs);
+            return Ok(personDtOs);*/
         }
 
 
 
         // GET: api/People/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPerson(int id)
+        public async Task<ActionResult<PersonDtos>> GetPerson(int id)
         {
-            var person = await _context.Person.FindAsync(id);
+            return await Get<Person, PersonDtos>(id);
+
+            /*var person = await _context.Person.FindAsync(id);
 
             if (person == null)
             {
@@ -65,7 +69,7 @@ namespace MoviesApi.Controllers
 
             var personDto = _mapper.Map<PersonDtos>(person);
 
-            return Ok(personDto);
+            return personDto;*/
         }
 
 
@@ -150,41 +154,9 @@ namespace MoviesApi.Controllers
 
 
         [HttpPatch("{id}")]
-        public async Task<ActionResult> PatchPerson(int id, [FromBody] JsonPatchDocument<PersonPatchDtos> patchDocument)
+        public async Task<IActionResult> PatchPerson(int id, [FromBody] JsonPatchDocument<PersonPatchDtos> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            //Get Data From DB
-            Person entityFromDb = await _context.Person.FindAsync(id);
-            if (entityFromDb == null)
-            {
-                return NotFound();
-            }
-
-            //ابتدا مدل دیتا بیس را با مدل پچ مپ میکنم و مقادیر دیتا بیس را داخل یک کتغیر میریزم
-            //به این دلیل این کار را کردم که بتوانم مدل دیتابیس را به مدل ورودی نزدیک کنم
-            PersonPatchDtos entityDto = _mapper.Map<PersonPatchDtos>(source: entityFromDb);
-
-            //حالا مدل ورودی را به مدل دیتا بیس باید اپلای کنم
-            patchDocument.ApplyTo(entityDto, modelState: ModelState);
-            //الان همه چیز داخل entityDTO  میباشد 
-            //شاید کاربر مقادیر نال ارسال کرده باشه 
-            var isValid = TryValidateModel(entityDto);
-            if (!isValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            //حالا باید مدلی که ویرایش کردیم را به مدل دیتابیس ارسال کنیم تا آپدیت بشه
-            _mapper.Map(source: entityDto, destination: entityFromDb);
-
-            //Save
-            _context.Update(entityFromDb);
-            await _context.SaveChangesAsync();
-            return Ok(entityFromDb);
+            return await Patch<Person, PersonPatchDtos>(id, patchDocument);
         }
 
 
@@ -193,7 +165,10 @@ namespace MoviesApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePerson([FromRoute] int id)
         {
-            var person = await _context.Person.FindAsync(id);
+
+            return await Delete<Person, PersonDtos>(id);
+
+            /*var person = await _context.Person.FindAsync(id);
             if (person == null)
             {
                 return NotFound();
@@ -202,7 +177,7 @@ namespace MoviesApi.Controllers
             _context.Person.Remove(person);
             await _context.SaveChangesAsync();
 
-            return Ok(person);
+            return Ok(person);*/
         }
     }
 }
